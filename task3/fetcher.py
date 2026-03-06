@@ -1,6 +1,17 @@
 import asyncio
 import random
 import time
+from dataclasses import dataclass
+from typing import Optional, Dict
+
+
+@dataclass
+class CustomerContext:
+    crm: Optional[Dict]
+    billing: Optional[Dict]
+    tickets: Optional[Dict]
+    data_complete: bool
+    fetch_time_ms: float
 
 
 async def fetch_crm(phone: str):
@@ -62,12 +73,19 @@ async def fetch_sequential(phone: str):
 
     print(f"Sequential fetch took {elapsed:.2f} ms")
 
-    return {
-        "crm": crm_data,
-        "billing": billing_data,
-        "tickets": ticket_data,
-        "fetch_time_ms": elapsed
-    }
+    data_complete = all([
+        crm_data is not None,
+        billing_data is not None,
+        ticket_data is not None
+    ])
+
+    return CustomerContext(
+        crm=crm_data,
+        billing=billing_data,
+        tickets=ticket_data,
+        data_complete=data_complete,
+        fetch_time_ms=elapsed
+    )
 
 
 async def fetch_parallel(phone: str):
@@ -83,7 +101,6 @@ async def fetch_parallel(phone: str):
 
     crm_data, billing_data, ticket_data = results
 
-    # Handle billing failure
     if isinstance(billing_data, Exception):
         print("Warning: billing fetch failed")
         billing_data = None
@@ -94,9 +111,16 @@ async def fetch_parallel(phone: str):
 
     print(f"Parallel fetch took {elapsed:.2f} ms")
 
-    return {
-        "crm": crm_data,
-        "billing": billing_data,
-        "tickets": ticket_data,
-        "fetch_time_ms": elapsed
-    }
+    data_complete = all([
+        crm_data is not None,
+        billing_data is not None,
+        ticket_data is not None
+    ])
+
+    return CustomerContext(
+        crm=crm_data,
+        billing=billing_data,
+        tickets=ticket_data,
+        data_complete=data_complete,
+        fetch_time_ms=elapsed
+    )
