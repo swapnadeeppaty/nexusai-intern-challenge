@@ -83,11 +83,24 @@ async def handle_message(customer_message: str, customer_id: str, channel: str) 
 
         ai_text = completion.choices[0].message.content
 
+        # Channel-specific formatting
+        if channel == "voice":
+            sentences = ai_text.split(".")
+            formatted_response = ".".join(sentences[:2]).strip()
+            if not formatted_response.endswith("."):
+                formatted_response += "."
+
+        elif channel == "whatsapp":
+            formatted_response = f"📶 Telecom Support:\n{ai_text}"
+
+        else:  # chat
+            formatted_response = ai_text
+
         return MessageResponse(
             response_text=ai_text,
             confidence=0.8,
             suggested_action="resolve",
-            channel_formatted_response=ai_text,
+            channel_formatted_response=formatted_response,
             error=None
         )
 
