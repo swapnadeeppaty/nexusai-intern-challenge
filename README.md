@@ -27,7 +27,7 @@ nexusai-intern-challenge
 Clone the repository:
 
 ```
-git clone https://github.com/YOUR_USERNAME/nexusai-intern-challenge.git
+git clone https://github.com/swapnadeeppaty/nexusai-intern-challenge.git
 cd nexusai-intern-challenge
 ```
 
