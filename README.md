@@ -1,4 +1,4 @@
-# NexusAI Backend Intern Challenge
+# Intern Challenge
 
 This repository contains my implementation of the **NexusAI Backend Internship Challenge**.
 The project simulates an AI-powered telecom customer support backend that processes messages, fetches customer data from multiple systems, and decides whether to escalate cases to human agents.
