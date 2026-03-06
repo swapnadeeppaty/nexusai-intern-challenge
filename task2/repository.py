@@ -46,3 +46,23 @@ class CallRecordRepository:
             rows = await conn.fetch(query, phone, limit)
 
         return [dict(row) for row in rows]
+
+
+    async def get_low_resolution_intents(self):
+
+        query = """
+        SELECT
+            intent,
+            COUNT(*) FILTER (WHERE outcome = 'resolved')::float / COUNT(*) AS resolution_rate,
+            AVG(csat_score) AS avg_csat
+        FROM call_records
+        WHERE created_at >= NOW() - INTERVAL '7 days'
+        GROUP BY intent
+        ORDER BY resolution_rate ASC
+        LIMIT 5
+        """
+
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch(query)
+
+        return [dict(row) for row in rows]
