@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 from openai import AsyncOpenAI
 
+# Initialize OpenAI client
 client = AsyncOpenAI()
 
 SYSTEM_PROMPT = """
@@ -35,6 +36,7 @@ class MessageResponse:
 
 async def handle_message(customer_message: str, customer_id: str, channel: str) -> MessageResponse:
 
+    # Handle empty or whitespace-only input
     if not customer_message or customer_message.strip() == "":
         return MessageResponse(
             response_text="",
@@ -45,14 +47,39 @@ async def handle_message(customer_message: str, customer_id: str, channel: str) 
         )
 
     try:
-        completion = await client.chat.completions.create(
-            model="gpt-4.1-mini",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": customer_message}
-            ],
-            temperature=0.3
-        )
+
+        try:
+            completion = await asyncio.wait_for(
+                client.chat.completions.create(
+                    model="gpt-4.1-mini",
+                    messages=[
+                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "user", "content": customer_message}
+                    ],
+                    temperature=0.3
+                ),
+                timeout=10
+            )
+
+        except Exception as e:
+
+            # Retry once if rate limited
+            if "rate" in str(e).lower():
+                await asyncio.sleep(2)
+
+                completion = await asyncio.wait_for(
+                    client.chat.completions.create(
+                        model="gpt-4.1-mini",
+                        messages=[
+                            {"role": "system", "content": SYSTEM_PROMPT},
+                            {"role": "user", "content": customer_message}
+                        ],
+                        temperature=0.3
+                    ),
+                    timeout=10
+                )
+            else:
+                raise e
 
         ai_text = completion.choices[0].message.content
 
@@ -62,6 +89,15 @@ async def handle_message(customer_message: str, customer_id: str, channel: str) 
             suggested_action="resolve",
             channel_formatted_response=ai_text,
             error=None
+        )
+
+    except asyncio.TimeoutError:
+        return MessageResponse(
+            response_text="",
+            confidence=0.0,
+            suggested_action="none",
+            channel_formatted_response="",
+            error="api_timeout"
         )
 
     except Exception as e:
