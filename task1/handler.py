@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 from typing import Optional
 
@@ -9,3 +10,14 @@ class MessageResponse:
     suggested_action: str
     channel_formatted_response: str
     error: Optional[str]
+
+
+async def handle_message(customer_message: str, customer_id: str, channel: str) -> MessageResponse:
+
+    return MessageResponse(
+        response_text="",
+        confidence=0.0,
+        suggested_action="none",
+        channel_formatted_response="",
+        error=None
+    )
